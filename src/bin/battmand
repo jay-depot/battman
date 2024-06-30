@@ -18,7 +18,7 @@ def main():
     modefile = os.path.join(battmanpath, 'mode')
 
     if not os.path.exists(battmanpath):
-        os.mkdir(battmanpath, '0770')
+        os.mkdir(battmanpath, 0o770)
         os.chown(battmanpath, 0, grp.getgrnam('adm').gr_gid)
     
     if os.path.exists(pidfile):

@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # Battman control tool
 
+import grp
 import os
 import argparse
 
@@ -10,15 +11,46 @@ def main():
     parser.add_argument('--charge-full-now', action='store_true', help='Allow the battery to charge fully until the next time the system is restarted or disconnected from AC power. Will fail if the system is not currently connected to AC power.')
     # --defaults
     parser.add_argument('--defaults', action='store_true', help='Reset the battery charge thresholds to 40%% and 60%%.')
-    # --help
-    parser.add_argument('--help', action='store_true', help='Show this help message and exit.')
 
     # Parse the arguments
     args = parser.parse_args()
 
     # Check if the user is root or in the adm group
+    if os.geteuid() != 0 and 'adm' not in [g.gr_name for g in grp.getgrall()]:
+        print('You must be root or in the adm group to run this tool')
+        return
+
+    # Check if battman is running
+    if not os.path.exists('/var/run/battman/pid'):
+        print('Battman daemon is not running')
+        return
+    elif not os.path.exists('/proc/' + open('/var/run/battman/pid', 'r').read().strip()):
+        print('Battman daemon is not running')
+        return
+    elif not os.path.exists('/var/run/battman/mode'):
+        print('Battman daemon is not running')
+        return
+    
+    with open('/var/run/battman/mode', 'r') as f:
+        currentMode = f.read().strip()
     
 
+    # Check if the user wants to charge the battery fully
+    if args.charge_full_now:
+        with open('/var/run/battman/mode', 'w') as f:
+            f.write('full')
+    
+    # Check if the user wants to reset the battery charge thresholds
+    if args.defaults:
+        with open('/var/run/battman/mode', 'w') as f:
+            f.write('default')
+
+    with open('/var/run/battman/mode', 'r') as f:
+        newMode = f.read().strip()
+
+    print('Battman mode')
+    print('Was:', currentMode)
+    print('Now:', newMode)
 
 if __name__ == '__main__':
     main()

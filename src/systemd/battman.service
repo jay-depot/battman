@@ -1,0 +1,11 @@
+[Unit]
+Description=Opinionated battery health manager
+Wants=upower.service
+Wants=power-profiles-daemon.service
+
+[Service]
+ExecStart=/usr/bin/battmand
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
