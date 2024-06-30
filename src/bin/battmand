@@ -1,0 +1,74 @@
+#!/usr/bin/env python3
+
+# Battman daemon
+
+import grp
+import os
+import time
+
+## How this thing works:
+# check for the existence of /var/run/battman/pid and /var/run/battman/mode
+# if the pid file exists, check if the process is running and if it is, exit
+# if the mode does not exist, create it with owner root, group adm, and mode 0660
+# if the mode file exists, replace its contents with `default`
+
+def main():
+    battmanpath = '/var/run/battman'
+    pidfile = os.path.join(battmanpath, 'pid')
+    modefile = os.path.join(battmanpath, 'mode')
+
+    if not os.path.exists(battmanpath):
+        os.mkdir(battmanpath, '0770')
+        os.chown(battmanpath, 0, grp.getgrnam('adm').gr_gid)
+    
+    if os.path.exists(pidfile):
+        with open(pidfile, 'r') as f:
+            pid = f.read().strip()
+        if os.path.exists('/proc/' + pid):
+            print('Battman daemon appears to be running')
+            return
+        else:
+            os.remove(pidfile)
+    
+    if not os.path.exists(modefile):
+        with open(modefile, 'w') as f:
+            f.write('default')
+        os.chown(modefile, 0, grp.getgrnam('adm').gr_gid)
+        os.chmod(modefile, 0o660)
+    else:
+        with open(modefile, 'w') as f:
+            f.write('default')
+
+    # Start the daemon
+    with open(pidfile, 'w') as f:
+        f.write(str(os.getpid()))
+    
+    print('Battman daemon starting')
+    while True:
+       with open(modefile, 'r') as f:
+          mode = f.read().strip()
+          print('Mode:', mode)
+          if mode == 'default':
+              # Write 40 and 60 to /sys/class/power_supply/BAT0/charge_control_start_threshold and
+              # # /sys/class/power_supply/BAT0/charge_control_end_threshold respectively
+              print('Default mode')
+              os.system('echo 60 > /sys/class/power_supply/BAT0/charge_control_end_threshold')
+              os.system('echo 40 > /sys/class/power_supply/BAT0/charge_control_start_threshold')
+              
+          elif mode == 'full':
+              # Check if we are on AC power. If not, switch to default mode. Otherwise, write
+              # 100 and 95 to /sys/class/power_supply/BAT0/charge_control_end_threshold and
+              # /sys/class/power_supply/BAT0/charge_control_start_threshold respectively
+              print('Full mode')
+              if os.system('cat /sys/class/power_supply/AC/online | grep 0 > /dev/null'):
+                  print('Not on AC power, switching to default mode')
+                  with open(modefile, 'w') as f:
+                      f.write('default')
+              else:
+                  os.system('echo 100 > /sys/class/power_supply/BAT0/charge_control_end_threshold')
+                  os.system('echo 95 > /sys/class/power_supply/BAT0/charge_control_start_threshold')
+              pass
+       time.sleep(15)
+
+if __name__ == '__main__':
+    main()

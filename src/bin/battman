@@ -1,0 +1,24 @@
+#!/usr/bin/env python3
+# Battman control tool
+
+import os
+import argparse
+
+def main():
+    parser = argparse.ArgumentParser(description='Battman control tool')
+    # --charge-full-now
+    parser.add_argument('--charge-full-now', action='store_true', help='Allow the battery to charge fully until the next time the system is restarted or disconnected from AC power. Will fail if the system is not currently connected to AC power.')
+    # --defaults
+    parser.add_argument('--defaults', action='store_true', help='Reset the battery charge thresholds to 40%% and 60%%.')
+    # --help
+    parser.add_argument('--help', action='store_true', help='Show this help message and exit.')
+
+    # Parse the arguments
+    args = parser.parse_args()
+
+    # Check if the user is root or in the adm group
+    
+
+
+if __name__ == '__main__':
+    main()
