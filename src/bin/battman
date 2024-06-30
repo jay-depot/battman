@@ -48,9 +48,7 @@ def main():
     with open('/var/run/battman/mode', 'r') as f:
         newMode = f.read().strip()
 
-    print('Battman mode')
-    print('Was:', currentMode)
-    print('Now:', newMode)
+    print('Battman mode was:', currentMode, ', now:', newMode)
 
 if __name__ == '__main__':
     main()

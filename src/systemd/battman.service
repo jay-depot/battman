@@ -4,7 +4,7 @@ Wants=upower.service
 Wants=power-profiles-daemon.service
 
 [Service]
-ExecStart=/usr/bin/battmand
+ExecStart=/usr/local/bin/battmand
 Restart=on-failure
 
 [Install]

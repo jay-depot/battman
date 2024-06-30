@@ -60,7 +60,9 @@ def main():
               # 100 and 95 to /sys/class/power_supply/BAT0/charge_control_end_threshold and
               # /sys/class/power_supply/BAT0/charge_control_start_threshold respectively
               print('Full mode')
-              if os.system('cat /sys/class/power_supply/AC/online | grep 0 > /dev/null'):
+              with open('/sys/class/power_supply/BAT0/status', 'r') as f:
+                  status = f.read().strip()
+              if status != 'Charging':
                   print('Not on AC power, switching to default mode')
                   with open(modefile, 'w') as f:
                       f.write('default')

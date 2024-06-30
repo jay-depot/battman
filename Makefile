@@ -1,3 +1,6 @@
+DESTDIR :=
+PREFIX := /usr/local
+
 all: build install
 
 build:
@@ -9,9 +12,14 @@ install:
 	@install -D -m 755 ./src/bin/battmand $(DESTDIR)$(PREFIX)/bin/battmand
 	@echo "Installing systemd service to $(DESTDIR)$(PREFIX)/lib/systemd/system"
 	@install -D -m 644 ./src/systemd/battman.service $(DESTDIR)$(PREFIX)/lib/systemd/system/battman.service
+	@echo "Installing desktop file to $(DESTDIR)$(PREFIX)/share/applications"
+	@install -D -m 644 ./src/desktop/battman-charge-full.desktop $(DESTDIR)$(PREFIX)/share/applications/battman-charge-full.desktop
 
 uninstall:
+	@echo "Removing from $(DESTDIR)$(PREFIX)/share/applications"
+	@rm -f $(DESTDIR)$(PREFIX)/share/applications/battman-charge-full.desktop
+	@echo "Removing from $(DESTDIR)$(PREFIX)/lib/systemd/system"
+	@rm -f $(DESTDIR)$(PREFIX)/lib/systemd/system/battman.service
 	@echo "Removing from $(DESTDIR)$(PREFIX)/bin"
 	@rm -f $(DESTDIR)$(PREFIX)/bin/battman
 	@rm -f $(DESTDIR)$(PREFIX)/bin/battmand
-	@rm -f $(DESTDIR)$(PREFIX)/lib/systemd/system/battman.service
