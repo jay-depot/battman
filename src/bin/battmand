@@ -67,7 +67,10 @@ def main():
               else:
                   os.system('echo 100 > /sys/class/power_supply/BAT0/charge_control_end_threshold')
                   os.system('echo 95 > /sys/class/power_supply/BAT0/charge_control_start_threshold')
-              pass
+          else: # Unknown mode. Letting this slide because it might get more modes later.
+              print('Unknown mode:', mode)
+              with open(modefile, 'w') as f:
+                  f.write('default')
        time.sleep(15)
 
 if __name__ == '__main__':
