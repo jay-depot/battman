@@ -14,7 +14,16 @@ the battery thresholds will be reset to 60% and 40%.
 
 ### Source:
 
+1. Clone the repository.
+2. Run `make install` as root.
+
+Optionally, you can add an icon to your panel that runs the "Charge to Full 
+Now" command defined in the `battman-charge-full.desktop` file included in this
+package.
+
 ### AUR:
+
+Not on there yet
 
 ## Usage
 
