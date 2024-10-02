@@ -39,5 +39,20 @@ Not on there yet
 
 `battman --defaults` - Reset the thresholds to 60% and 40%.
 
+### Desktop Entry:
+
+For now, I've included a desktop file `battman-charge-full.desktop` that can be
+assigned to a panel icon. It depends on kdialog to display the output of 
+`battman --charge-full-now` for the moment.
+
+Feel free to copy and customize that file to work in your own desktop environment,
+but I do recommend keeping the original file around for reference in case I push
+updates to it.
+
+### Actual Desktop Support:
+
+Coming soon, at least for KDE Plasma.
+
+
 ## License
 This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details.
