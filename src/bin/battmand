@@ -17,6 +17,16 @@ DEFAULT_MODE_BATTERY_MAX = '60'
 FULL_MODE_BATTERY_MIN = '95'
 FULL_MODE_BATTERY_MAX = '100'
 
+def setBatteryThresholds(batPath, min, max):
+    with open(os.path.join('/sys/class/power_supply', batPath, 'charge_control_start_threshold'), 'w') as f:
+        f.write(min)
+    with open(os.path.join('/sys/class/power_supply', batPath, 'charge_control_end_threshold'), 'w') as f:
+        f.write(max)
+
+def getBatteryChargingStatus(batPath):
+    with open(os.path.join('/sys/class/power_supply', batPath, 'status'), 'r') as f:
+        return f.read().strip()
+
 def main():
     battmanpath = '/var/run/battman'
     pidfile = os.path.join(battmanpath, 'pid')
@@ -57,8 +67,7 @@ def main():
                 # Write 40 and 60 to /sys/class/power_supply/BAT0/charge_control_start_threshold and
                 # # /sys/class/power_supply/BAT0/charge_control_end_threshold respectively
                 print('Default mode')
-                os.system('echo '+DEFAULT_MODE_BATTERY_MAX+' > /sys/class/power_supply/BAT0/charge_control_end_threshold')
-                os.system('echo '+DEFAULT_MODE_BATTERY_MIN+' > /sys/class/power_supply/BAT0/charge_control_start_threshold')
+                setBatteryThresholds('BAT0', DEFAULT_MODE_BATTERY_MIN, DEFAULT_MODE_BATTERY_MAX)
               
             elif mode == 'full':
                 # Check if we are on AC power. If not, switch to default mode. Otherwise, write
@@ -66,15 +75,14 @@ def main():
                 # /sys/class/power_supply/BAT0/charge_control_start_threshold respectively
                 print('Full mode')
                 # TODO: This should support multiple batteries
-                with open('/sys/class/power_supply/BAT0/status', 'r') as f:
-                    status = f.read().strip()
+                status = getBatteryChargingStatus('BAT0')
+
                 if status != 'Charging' and status != 'Not charging': # Either of these can mean we are on AC power, apparently
                     print('Not on AC power, switching to default mode')
                     with open(modefile, 'w') as f:
                         f.write('default')
                 else:
-                    os.system('echo '+FULL_MODE_BATTERY_MAX+' > /sys/class/power_supply/BAT0/charge_control_end_threshold')
-                    os.system('echo '+FULL_MODE_BATTERY_MIN+' > /sys/class/power_supply/BAT0/charge_control_start_threshold')
+                    setBatteryThresholds('BAT0', FULL_MODE_BATTERY_MIN, FULL_MODE_BATTERY_MAX)
             else: # Unknown mode. Letting this slide because it might get more modes later.
                 print('Unknown mode:', mode)
                 with open(modefile, 'w') as f:
