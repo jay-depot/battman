@@ -12,6 +12,11 @@ import time
 # if the mode does not exist, create it with owner root, group adm, and mode 0660
 # if the mode file exists, replace its contents with `default`
 
+DEFAULT_MODE_BATTERY_MIN = '40'
+DEFAULT_MODE_BATTERY_MAX = '60'
+FULL_MODE_BATTERY_MIN = '95'
+FULL_MODE_BATTERY_MAX = '100'
+
 def main():
     battmanpath = '/var/run/battman'
     pidfile = os.path.join(battmanpath, 'pid')
@@ -45,35 +50,36 @@ def main():
     
     print('Battman daemon starting')
     while True:
-       with open(modefile, 'r') as f:
-          mode = f.read().strip()
-          print('Mode:', mode)
-          if mode == 'default':
-              # Write 40 and 60 to /sys/class/power_supply/BAT0/charge_control_start_threshold and
-              # # /sys/class/power_supply/BAT0/charge_control_end_threshold respectively
-              print('Default mode')
-              os.system('echo 60 > /sys/class/power_supply/BAT0/charge_control_end_threshold')
-              os.system('echo 40 > /sys/class/power_supply/BAT0/charge_control_start_threshold')
+        with open(modefile, 'r') as f:
+            mode = f.read().strip()
+            print('Mode:', mode)
+            if mode == 'default':
+                # Write 40 and 60 to /sys/class/power_supply/BAT0/charge_control_start_threshold and
+                # # /sys/class/power_supply/BAT0/charge_control_end_threshold respectively
+                print('Default mode')
+                os.system('echo '+DEFAULT_MODE_BATTERY_MAX+' > /sys/class/power_supply/BAT0/charge_control_end_threshold')
+                os.system('echo '+DEFAULT_MODE_BATTERY_MIN+' > /sys/class/power_supply/BAT0/charge_control_start_threshold')
               
-          elif mode == 'full':
-              # Check if we are on AC power. If not, switch to default mode. Otherwise, write
-              # 100 and 95 to /sys/class/power_supply/BAT0/charge_control_end_threshold and
-              # /sys/class/power_supply/BAT0/charge_control_start_threshold respectively
-              print('Full mode')
-              with open('/sys/class/power_supply/BAT0/status', 'r') as f:
-                  status = f.read().strip()
-              if status != 'Charging':
-                  print('Not on AC power, switching to default mode')
-                  with open(modefile, 'w') as f:
-                      f.write('default')
-              else:
-                  os.system('echo 100 > /sys/class/power_supply/BAT0/charge_control_end_threshold')
-                  os.system('echo 95 > /sys/class/power_supply/BAT0/charge_control_start_threshold')
-          else: # Unknown mode. Letting this slide because it might get more modes later.
-              print('Unknown mode:', mode)
-              with open(modefile, 'w') as f:
-                  f.write('default')
-       time.sleep(15)
+            elif mode == 'full':
+                # Check if we are on AC power. If not, switch to default mode. Otherwise, write
+                # 100 and 95 to /sys/class/power_supply/BAT0/charge_control_end_threshold and
+                # /sys/class/power_supply/BAT0/charge_control_start_threshold respectively
+                print('Full mode')
+                # TODO: This should support multiple batteries
+                with open('/sys/class/power_supply/BAT0/status', 'r') as f:
+                    status = f.read().strip()
+                if status != 'Charging' and status != 'Not charging': # Either of these can mean we are on AC power, apparently
+                    print('Not on AC power, switching to default mode')
+                    with open(modefile, 'w') as f:
+                        f.write('default')
+                else:
+                    os.system('echo '+FULL_MODE_BATTERY_MAX+' > /sys/class/power_supply/BAT0/charge_control_end_threshold')
+                    os.system('echo '+FULL_MODE_BATTERY_MIN+' > /sys/class/power_supply/BAT0/charge_control_start_threshold')
+            else: # Unknown mode. Letting this slide because it might get more modes later.
+                print('Unknown mode:', mode)
+                with open(modefile, 'w') as f:
+                    f.write('default')
+        time.sleep(15)
 
 if __name__ == '__main__':
     main()
