@@ -2,7 +2,7 @@
 Name=Charge to Full Now
 Comment=Charge the battery to full now
 TryExec=battman
-Exec=kdialog --msgbox "`battman --charge-full-now`"
+Exec=kdialog --msgbox "$(battman --charge-full-now)"
 Icon=battery-full-charging-symbolic
 Type=Application
 Categories=System;Utility;
